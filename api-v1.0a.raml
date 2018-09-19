@@ -1,0 +1,312 @@
+#%RAML 1.0
+title: Liftago Public API
+version: v1
+
+baseUri: http://api.liftago.com/v1.0/partner/{partnerId}
+
+description: |
+  API for external integration.
+
+/rides:
+  post:
+    description: Creates a new ride
+    body:
+      application/json:
+        type: Ride
+        properties:
+          webHook?:
+            type: object
+            description: |
+              If present, Liftago will send POST request to this URI, with given
+              headers and body containing RideStatusChangedEvent on every relevant
+              ride change.
+            properties:
+              url:
+                type: URI
+                description: URI to be called
+              headers:
+                type: Header[]
+                maxItems: 10
+    responses:
+      201:
+        body:
+          application/json:
+            type: Ride
+        headers:
+          Location:
+            description: URI of created ride
+            example: /rides/30dd67cc-b596-11e8-96f8-529269fb1459
+      400:
+        body:
+          application/json:
+            type: RideCreationError
+
+
+  /{rideId}:
+    get:
+      description: Gets info about the ride
+      responses:
+        200:
+          body:
+            application/json:
+              type: Ride
+
+        400:
+          body:
+            application/json:
+              type: Error
+        404:
+    /cancel:
+      post:
+        description: Cancels ride
+        responses:
+          204:
+          400:
+            body:
+              application/json:
+                type: Error
+          404:
+    /rating:
+      put:
+        description: Rates the ride
+        body:
+          application/json:
+            type: Rating
+        responses:
+          204:
+          400:
+            body:
+              application/json:
+                type: Error
+          404:
+
+/nearbyDrivers:
+  post:
+    description: Returns list of nearby drivers
+    body:
+      application/json:
+        type: object
+        properties:
+          position: Coordinates
+
+    responses:
+      200:
+        body:
+          application/json:
+            type: NearbyDriver[]
+
+/priceEstimate:
+  post:
+    body:
+      application/json:
+        type: RouteInfo
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+            properties:
+              lower:
+                type: Money
+                description: Lower bound of the estimate
+              upper:
+                type: Money
+                description: |
+                  Upper bound of the estimate. Final price may be higher in case
+                  of different route or in case of unexpectedly high fare.
+
+      400:
+        body:
+          application/json:
+            type: Error
+
+types:
+  RouteInfo:
+    type: object
+    properties:
+      pickup: Coordinates
+      destination: Coordinates
+
+  Ride:
+    type: RouteInfo # extends
+    properties:
+      id: string
+      pickup: GeoPoint
+      destination: GeoPoint
+      status:
+        enum:
+          - PROCESSING
+          - ACCEPTED
+          - WAITING
+          - ON_BOARD
+          - COMPLETED
+          - CANCELLED
+          - REJECTED
+        description: |
+          PROCESSING - ride is being processed, driver not found yet\n
+          ACCEPTED - driver found and selected\n
+          WAITING - driver is waiting for passenger\n
+          ON_BOARD - passenger on board\n
+          COMPLETED - ride finished\n
+          CANCELLED - ride cancelled\n
+          REJECTED - could not find taxi in time\n
+      passenger: Passenger
+      reference?:
+        type: string
+        description: Optional ID send by partner which will be used in reports
+      canceledBy?:
+        enum:
+          - PASSENGER
+          - DRIVER
+      estimatedPrice?:
+        type: Money
+        description: |
+          Estimate based on offered tariff and route. May differ
+          from the final price due to route change or traffic situation.
+          Will be present once the ride is ACCEPTED
+      driver?:
+        type: Driver
+        description: Will be present once the ride is ACCEPTED
+      car?:
+        type: Car
+        description: Will be present once the ride is ACCEPTED
+      taxiPosition?:
+        type: Coordinates
+        description: |
+          Last known taxi position.
+          Will be available when the DRV starts comming for the PAS (can be null even if the ride is ACCEPTED)
+      arrivalEstimateAt?:
+        type: datetime
+        description: |
+          Estimate of the taxi arrival to the pickup point.
+          Not updated in case of delay.
+          (available when the ride is ACCEPTED)
+      completedAt?:
+        type: datetime
+        description: When was the ride finished/cancelled
+      bill?:
+        type: object
+        properties:
+          amount:
+            type: Money
+            description: Total amount including tip
+          taximeterAmount:
+            type: Money
+            description: Amount from the taximeter without a tip
+        description: Price, will be available once the ride is FINISHED
+      links:
+        type: object
+        properties:
+          self: URI
+          cancel: URI
+  Rating:
+    type: object
+    properties:
+      rating:
+        type: integer
+        minimum: 1
+        maximum: 5
+        description: Rating of the driver, 1 is the worst, 5 is the best
+      comment: string
+
+  URI: string
+
+  Header:
+    type: object
+    properties:
+      name: string
+      value: string
+
+  Money:
+    type: object
+    properties:
+      amount: number
+      ccy: string
+
+  NearbyDriver:
+    type: object
+    properties:
+      position: Coordinates
+
+  Coordinates:
+    type: object
+    properties:
+      lat: number
+      lon: number
+
+  GeoPoint:
+    type: Coordinates
+    properties:
+      placeName:
+        type: string
+        description:  comma separated address parts, ie. Truhlářská 15, 110 00 Praha
+
+  Passenger:
+    type: object
+    properties:
+      name: string
+      phoneNumber:
+        type: string
+        description:  Phone number with international prefix
+
+  Driver:
+    type: object
+    properties:
+      name: string
+      phoneNumber?:
+        type: string
+        description: Phone number to driver (goes through exchange)
+
+  Car:
+    type: object
+    properties:
+      color:
+        type: string
+        description: RGB encoded color (#ff0000)
+      brand: string
+      model: string
+      licencePlate: string
+
+  WebHookEvent:
+    type: object
+    properties:
+      eventId:
+        type: string
+        description: Unique event identifier
+      eventType:
+        enum:
+          - status_changed
+        description:
+          status_changed - Ride status changed
+          Clients have to ignore unknown eventTypes
+      timestamp:
+        type: datetime
+        description: When the event occured.
+
+  RideStatusChangedEvent:
+    type: WebHookEvent
+    properties:
+      rideId: string
+      status: string
+      links:
+        type: object
+        properties:
+          ride:
+            type: URI
+            description: URI of the ride
+  Error:
+    type: object
+    properties:
+      code: string
+      message: string
+
+  RideCreationError:
+    type: Error
+    properties:
+      code:
+        enum:
+          - invalid_pickup
+          - invalid_destination
+          - invalid_phone_number
+          - current_ride_exists
+        description: More error codes will follow
