@@ -31,7 +31,7 @@ description: |
       201:
         body:
           application/json:
-            type: Ride
+            type: RideInfo
         headers:
           Location:
             description: URI of created ride
@@ -49,7 +49,7 @@ description: |
         200:
           body:
             application/json:
-              type: Ride
+              type: RideInfo
 
         400:
           body:
@@ -59,12 +59,15 @@ description: |
     /cancel:
       post:
         description: Cancels ride
+        body:
+          application/json:
+            type: CancelRequest
         responses:
           204:
           400:
             body:
               application/json:
-                type: Error
+                type: CancellationError
           404:
     /rating:
       put:
@@ -106,14 +109,18 @@ description: |
           application/json:
             type: object
             properties:
-              lower:
-                type: Money
-                description: Lower bound of the estimate
-              upper:
-                type: Money
-                description: |
-                  Upper bound of the estimate. Final price may be higher in case
-                  of different route or in case of unexpectedly high fare.
+              estimate:
+                type: object
+                properties:
+                  lower:
+                    type: number
+                    description: Lower bound of the estimate
+                  upper:
+                    type: number
+                    description: |
+                      Upper bound of the estimate. Final price may be higher in case
+                      of different route or in case of unexpectedly high fare.
+                  ccy: Currency
 
       400:
         body:
@@ -128,11 +135,21 @@ types:
       destination: Coordinates
 
   Ride:
-    type: RouteInfo # extends
+    type: object
+    properties:
+      pickup: GeoPoint
+      destination?: GeoPoint
+      passenger: Passenger
+      reference:
+        type: string
+        description: |
+          Unique ID send by partner which will be used in reports
+          and to detect duplicate POSTs
+
+  RideInfo:
+    type: Ride
     properties:
       id: string
-      pickup: GeoPoint
-      destination: GeoPoint
       status:
         enum:
           - PROCESSING
@@ -143,17 +160,13 @@ types:
           - CANCELLED
           - REJECTED
         description: |
-          PROCESSING - ride is being processed, driver not found yet\n
-          ACCEPTED - driver found and selected\n
-          WAITING - driver is waiting for passenger\n
-          ON_BOARD - passenger on board\n
+          PROCESSING - ride is being processed, driver not found yet. Transitions to ACCEPTED or REJECTED\n
+          ACCEPTED - driver found and selected. Transitions to WAITING or CANCELLED\n
+          WAITING - driver is waiting on pickup location. Transitions to ON_BOARD or CANCELLED\n
+          ON_BOARD - passenger on board. Transitions to COMPLETED\n
           COMPLETED - ride finished\n
           CANCELLED - ride cancelled\n
           REJECTED - could not find taxi in time\n
-      passenger: Passenger
-      reference?:
-        type: string
-        description: Optional ID send by partner which will be used in reports
       canceledBy?:
         enum:
           - PASSENGER
@@ -198,6 +211,7 @@ types:
         type: object
         properties:
           self: URI
+          rating: URI
           cancel: URI
   Rating:
     type: object
@@ -221,7 +235,11 @@ types:
     type: object
     properties:
       amount: number
-      ccy: string
+      ccy: Currency
+
+  Currency:
+    type: string
+    description: ISO-4217 (EUR, CZK)
 
   NearbyDriver:
     type: object
@@ -256,13 +274,26 @@ types:
       phoneNumber?:
         type: string
         description: Phone number to driver (goes through exchange)
+      image: URI
 
   Car:
     type: object
     properties:
       color:
-        type: string
-        description: RGB encoded color (#ff0000)
+        type: object
+        properties:
+            id:
+              enum:
+                - BLACK
+                - BLUE
+                - BROWN
+                - GREEN
+                - ORANGE
+                - PURPLE
+                - RED
+                - SILVER
+                - WHITE
+                - YELLOW
       brand: string
       model: string
       licencePlate: string
@@ -294,19 +325,40 @@ types:
           ride:
             type: URI
             description: URI of the ride
+
+  CancelRequest:
+    type: object
+    properties:
+      reason?:
+        enum:
+          - JUST_TRYING
+          - HUGE_DELAY
+          - CHANGE_OF_PLANS
+          - OTHER
+      comment?:
+        type: string
+        description: Text comment about cancallation reason
+
   Error:
     type: object
     properties:
       code: string
       message: string
 
+  CancellationError:
+    type: Error
+    properties:
+      code:
+        enum:
+          - ride_cancel.incompatible_state
+
   RideCreationError:
     type: Error
     properties:
       code:
         enum:
-          - invalid_pickup
-          - invalid_destination
-          - invalid_phone_number
-          - current_ride_exists
+          - ride_create.invalid_pickup
+          - ride_create.invalid_destination
+          - ride_create.invalid_phone_number
+          - ride_create.current_ride_exists
         description: More error codes will follow
