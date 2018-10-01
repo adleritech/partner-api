@@ -140,16 +140,17 @@ types:
       pickup: GeoPoint
       destination?: GeoPoint
       passenger: Passenger
-      reference:
+      id:
         type: string
         description: |
           Unique ID send by partner which will be used in reports
           and to detect duplicate POSTs
+        pattern: "[a-zA-Z0-9-_]+"
+        maxLength: 40
 
   RideInfo:
     type: Ride
     properties:
-      id: string
       status:
         enum:
           - PROCESSING
