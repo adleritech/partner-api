@@ -96,7 +96,7 @@ description: |
       200:
         body:
           application/json:
-            type: NearbyDriver[]
+            type: NearbyDrivers
 
 /priceEstimate:
   post:
@@ -242,11 +242,6 @@ types:
     type: string
     description: ISO-4217 (EUR, CZK)
 
-  NearbyDriver:
-    type: object
-    properties:
-      position: Coordinates
-
   Coordinates:
     type: object
     properties:
@@ -298,6 +293,17 @@ types:
       brand: string
       model: string
       licencePlate: string
+
+  NearbyDriver:
+    type: object
+    properties:
+      position:
+        type: Coordinates
+
+  NearbyDrivers:
+    type: object
+    properties:
+      drivers: NearbyDriver[]
 
   WebHookEvent:
     type: object
