@@ -1,0 +1,123 @@
+swagger: "2.0"
+info:
+  description: "Promo codes API"
+  version: "1.0.0"
+  title: "Promo codes API"
+host: "api.liftago.com"
+basePath: "/v1"
+tags:
+- name: "promocodes"
+schemes:
+- "https"
+paths:
+  /promocodes/{partnerId}:
+    post:
+      tags:
+      - "promocodes"
+      summary: "Add a new promo code"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "partnerId"
+        description: "ID of merchant"
+        required: true
+        type: "string"
+        format: "sring"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/CreatePromoCodes"
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/ListOfPromocodes"
+        400:
+          description: "Invalid input"
+        404:
+          description: "Unknown merchant ID"
+
+  /promocodes/{partnerId}/search:
+    post:
+      tags:
+      - "promocodes"
+      summary: "Search multiple promocodes at once"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "partnerId"
+        description: "ID of merchant"
+        required: true
+        type: "string"
+        format: "string"
+      - in: "body"
+        name: "body"
+        schema:
+          $ref: "#/definitions/SearchPromocodes"
+      responses:
+        200:
+          description: ""
+          schema:
+            $ref: "#/definitions/ListOfPromocodes"
+        400:
+          description: "Invalid input"
+        404:
+          description: "Unknown merchant ID"
+
+definitions:
+  CreatePromoCodes:
+    type: object
+    properties:
+      quantity:
+        type: "number"
+        format: "int16"
+        description: "number of promocodes to be generated"
+
+  SearchPromocodes:
+    type: object
+    properties:
+      promocodes:
+        type: array
+        items:
+          type: string
+
+  ListOfPromocodes:
+    type: object
+    properties:
+      promocodes:
+        type: array
+        items:
+          $ref: '#/definitions/PromoCode'
+
+  PromoCode:
+    type: object
+    properties:
+      isValid:
+        description: "Promocode is valid when it's not claimed or expired"
+        type: "boolean"
+        format: "boolen"
+      percent:
+        $ref: "#/definitions/Percent"
+      promocode:
+        type: string
+        format: string
+
+  Percent:
+    type: "object"
+    properties:
+      maximumAmount:
+        type: "number"
+        format: "float"
+      percentage:
+        type: "number"
+        format: "float"
+      currency:
+        type: "string"
+        enum: ["CZK"]
