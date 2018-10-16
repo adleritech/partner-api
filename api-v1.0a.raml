@@ -3,6 +3,9 @@ title: Liftago Public API
 version: v1
 
 baseUri: http://api.liftago.com/v1.0/partners/{partnerId}
+annotationTypes:
+  javaName:
+    allowedTargets: [TypeDeclaration, Method]
 
 description: |
   API for external integration.
@@ -12,21 +15,7 @@ description: |
     description: Creates a new ride
     body:
       application/json:
-        type: Ride
-        properties:
-          webHook?:
-            type: object
-            description: |
-              If present, Liftago will send POST request to this URI, with given
-              headers and body containing RideStatusChangedEvent on every relevant
-              ride change.
-            properties:
-              url:
-                type: URI
-                description: URI to be called
-              headers:
-                type: Header[]
-                maxItems: 10
+        type: CreateRideRequest
     responses:
       201:
         body:
@@ -39,10 +28,21 @@ description: |
       400:
         body:
           application/json:
-            type: RideCreationError
+            type: MalformedInputError
+      404:
+        body:
+          application/json:
+            type: PartnerNotFoundError
+      409:
+        body:
+          application/json:
+            type: DuplicatedRideIdError
 
 
   /{rideId}:
+    uriParameters:
+          rideId:
+            type: string
     get:
       description: Gets info about the ride
       responses:
@@ -51,11 +51,10 @@ description: |
             application/json:
               type: RideInfo
 
-        400:
+        404:
           body:
             application/json:
-              type: Error
-        404:
+              type: RideNotFoundError
     /cancel:
       post:
         description: Cancels ride
@@ -67,8 +66,15 @@ description: |
           400:
             body:
               application/json:
-                type: CancellationError
+                type: MalformedInputError
           404:
+            body:
+              application/json:
+               type: RideNotFoundError
+          409:
+            body:
+              application/json:
+               type: IncompatibleStateError
     /rating:
       put:
         description: Rates the ride
@@ -80,23 +86,36 @@ description: |
           400:
             body:
               application/json:
-                type: Error
+                type: MalformedInputError
           404:
+            body:
+              application/json:
+               type: RideNotFoundError
+          409:
+            body:
+              application/json:
+               type: IncompatibleStateError
 
 /nearbyDrivers:
   post:
     description: Returns list of nearby drivers
     body:
       application/json:
-        type: object
-        properties:
-          position: Coordinates
+        type: NearbyDriversRequest
 
     responses:
       200:
         body:
           application/json:
             type: NearbyDrivers
+      400:
+        body:
+          application/json:
+            type: MalformedInputError
+      404:
+        body:
+          application/json:
+            type: PartnerNotFoundError
 
 /priceEstimate:
   post:
@@ -107,27 +126,42 @@ description: |
       200:
         body:
           application/json:
-            type: object
-            properties:
-              estimate:
-                type: object
-                properties:
-                  lower:
-                    type: number
-                    description: Lower bound of the estimate
-                  upper:
-                    type: number
-                    description: |
-                      Upper bound of the estimate. Final price may be higher in case
-                      of different route or in case of unexpectedly high fare.
-                  ccy: Currency
-
+            type: PriceEstimateResponse
       400:
         body:
           application/json:
-            type: Error
+            type: MalformedInputError
+      404:
+        body:
+          application/json:
+            type: PartnerNotFoundError
 
 types:
+  NearbyDriversRequest:
+    type: object
+    properties:
+      position: Coordinates
+
+  PriceEstimate:
+    type: object
+    properties:
+      lower:
+        type: number
+        format: double
+        description: Lower bound of the estimate
+      upper:
+        type: number
+        format: double
+        description: |
+          Upper bound of the estimate. Final price may be higher in case
+          of different route or in case of unexpectedly high fare.
+      ccy: Currency
+
+  PriceEstimateResponse:
+    type: object
+    properties:
+      estimate: PriceEstimate
+
   RouteInfo:
     type: object
     properties:
@@ -147,6 +181,33 @@ types:
           and to detect duplicate POSTs
         pattern: "[a-zA-Z0-9-_]+"
         maxLength: 40
+
+  CreateRideRequest:
+    type: Ride
+    properties:
+      webHook?:
+        type: object
+        description: |
+          If present, Liftago will send POST request to this URI, with given
+          headers and body containing RideStatusChangedEvent on every relevant
+          ride change.
+        properties:
+          url:
+            type: URI
+            description: URI to be called
+          headers:
+            type: Header[]
+            maxItems: 10
+
+  RideBill:
+    type: object
+    properties:
+      amount:
+        type: Money
+        description: Total amount including tip
+      taximeterAmount:
+        type: Money
+        description: Amount from the taximeter without a tip
 
   RideInfo:
     type: Ride
@@ -199,14 +260,7 @@ types:
         type: datetime
         description: When was the ride finished/cancelled
       bill?:
-        type: object
-        properties:
-          amount:
-            type: Money
-            description: Total amount including tip
-          taximeterAmount:
-            type: Money
-            description: Amount from the taximeter without a tip
+        type: RideBill
         description: Price, will be available once the ride is FINISHED
       links:
         type: object
@@ -214,6 +268,7 @@ types:
           self: URI
           rating: URI
           cancel: URI
+
   Rating:
     type: object
     properties:
@@ -245,8 +300,12 @@ types:
   Coordinates:
     type: object
     properties:
-      lat: number
-      lon: number
+      lat:
+        type: number
+        format: double
+      lon:
+        type: number
+        format: double
 
   GeoPoint:
     type: Coordinates
@@ -270,26 +329,13 @@ types:
       phoneNumber?:
         type: string
         description: Phone number to driver (goes through exchange)
-      image: URI
+      image?: URI
 
   Car:
     type: object
     properties:
       color:
-        type: object
-        properties:
-            id:
-              enum:
-                - BLACK
-                - BLUE
-                - BROWN
-                - GREEN
-                - ORANGE
-                - PURPLE
-                - RED
-                - SILVER
-                - WHITE
-                - YELLOW
+        enum: [BLACK, BLUE, BROWN, GREEN, ORANGE, PURPLE, RED, SILVER, WHITE, YELLOW]
       brand: string
       model: string
       licencePlate: string
@@ -352,20 +398,22 @@ types:
       code: string
       message: string
 
-  CancellationError:
+  MalformedInputError:
     type: Error
-    properties:
-      code:
-        enum:
-          - ride_cancel.incompatible_state
+    example: {"code": "malformed_json_request", "message": "Malformed json request"}
 
-  RideCreationError:
+  RideNotFoundError:
     type: Error
-    properties:
-      code:
-        enum:
-          - ride_create.invalid_pickup
-          - ride_create.invalid_destination
-          - ride_create.invalid_phone_number
-          - ride_create.current_ride_exists
-        description: More error codes will follow
+    example: {"code":"ride_not_found", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' does not exist"}
+
+  PartnerNotFoundError:
+    type: Error
+    example: {"code":"partner_not_found", "message":"Partner 'UNKNOWN' does not exist"}
+
+  DuplicatedRideIdError:
+    type: Error
+    example: {"code":"current_ride_exists", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' already exists"}
+
+  IncompatibleStateError:
+    type: Error
+    example: {"code":"incompatible_state", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' is not in the state compatible with the requested action"}
