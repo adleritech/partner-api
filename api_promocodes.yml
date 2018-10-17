@@ -41,11 +41,11 @@ paths:
         404:
           description: "Unknown merchant ID"
 
-  /promocodes/{partnerId}/search:
+  /promocodes/{partnerId}/fetch:
     post:
       tags:
       - "promocodes"
-      summary: "Search multiple promocodes at once"
+      summary: "Fetch multiple promocodes at once"
       consumes:
       - "application/json"
       produces:
@@ -60,7 +60,7 @@ paths:
       - in: "body"
         name: "body"
         schema:
-          $ref: "#/definitions/SearchPromocodes"
+          $ref: "#/definitions/FetchPromocodes"
       responses:
         200:
           description: ""
@@ -80,7 +80,7 @@ definitions:
         format: "int16"
         description: "number of promocodes to be generated"
 
-  SearchPromocodes:
+  FetchPromocodes:
     type: object
     properties:
       promocodes:
