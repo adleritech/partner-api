@@ -49,9 +49,9 @@ types:
           - CANCELLED
           - REJECTED
         description: |
-          PROCESSING - ride is being processed, driver not found yet. Transitions to ACCEPTED or REJECTED\n
-          ACCEPTED - driver found and selected. Transitions to WAITING or CANCELLED\n
-          WAITING - driver is waiting on pickup location. Transitions to ON_BOARD or CANCELLED\n
+          PROCESSING - ride is being processed, driver not found yet. Transitions to ACCEPTED, REJECTED or CANCELLED BY PASSENGER\n
+          ACCEPTED - driver found and selected. Transitions to WAITING or CANCELLED (either by DRIVER or PASSENGER)\n
+          WAITING - driver is waiting on pickup location. Transitions to ON_BOARD or CANCELLED (either by DRIVER or PASSENGER)\n
           ON_BOARD - passenger on board. Transitions to COMPLETED\n
           COMPLETED - ride finished\n
           CANCELLED - ride cancelled\n
