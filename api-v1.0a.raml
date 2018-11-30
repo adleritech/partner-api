@@ -119,6 +119,7 @@ description: |
 
 /priceEstimate:
   post:
+    description: Returns unguaranteed price estimate for the requested route
     body:
       application/json:
         type: RouteInfo
@@ -130,7 +131,7 @@ description: |
       400:
         body:
           application/json:
-            type: MalformedInputError
+            type: UnsupportedLocationError
       404:
         body:
           application/json:
@@ -414,3 +415,7 @@ types:
   IncompatibleStateError:
     type: Error
     example: {"code":"incompatible_state", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' is not in the state compatible with the requested action"}
+
+  UnsupportedLocationError:
+    type: Error
+    example: {"code":"unsupported_location", "message":"Requested route is located in an unsupported area."}
