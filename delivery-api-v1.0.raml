@@ -1,0 +1,359 @@
+#%RAML 1.0
+title: Liftago Public API
+version: v1
+
+baseUri: http://api.liftago.com/v1.0/partners/{partnerId}
+annotationTypes:
+  javaName:
+    allowedTargets: [TypeDeclaration, Method]
+
+description: |
+  Delivery API for external integration.
+
+/deliveryRides:
+  post:
+    description: Creates a new delivery ride
+    body:
+      application/json:
+        type: CreateDeliveryRideRequest
+    responses:
+      201:
+        body:
+          application/json:
+            type: DeliveryRideInfo
+        headers:
+          Location:
+            description: URI of created delivery ride
+            example: /deliveryRides/30dd67cc-b596-11e8-96f8-529269fb1459
+      400:
+        body:
+          application/json:
+            type: MalformedInputError
+      404:
+        body:
+          application/json:
+            type: PartnerNotFoundError
+      409:
+        body:
+          application/json:
+            type: DuplicatedRideIdError
+
+
+  /{rideId}:
+    uriParameters:
+          rideId:
+            type: string
+    get:
+      description: Gets info about the delivery ride
+      responses:
+        200:
+          body:
+            application/json:
+              type: DeliveryRideInfo
+
+        404:
+          body:
+            application/json:
+              type: RideNotFoundError
+    /cancel:
+      post:
+        description: Cancels ride
+        body:
+          application/json:
+            type: CancelRequest
+        responses:
+          204:
+          400:
+            body:
+              application/json:
+                type: MalformedInputError
+          404:
+            body:
+              application/json:
+               type: RideNotFoundError
+          409:
+            body:
+              application/json:
+               type: IncompatibleStateError
+
+types:
+  DeliveryRide:
+    type: object
+    properties:
+      stops:
+        type: Stop[]
+        description: must start an element with the kind "pickup", followed by exactly one element with the kind "destination" and followed by 0+ "fallback_destinations".
+      notesForDriver:
+        type: object
+        description: Localized messages for driver.
+        properties:
+          onPackageTakeOver: string
+          onPackageHandOver: string
+      id:
+        type: string
+        description: |
+          Unique ID send by partner which will be used in reports
+          and to detect duplicate POSTs
+        pattern: "[a-zA-Z0-9-_]+"
+        maxLength: 40
+
+  Stop:
+    type: object
+    properties:
+      stopId: string
+      location: Location
+      contact:
+        type: Person
+        description: Contact person assuming the role of a sender (for "pickup") or a recipient (for "destination" or "fallback destination").
+      kind:
+        type: string
+        description: PICKUP | DESTINATION | FALLBACK_DESTINATION
+
+  CreateDeliveryRideRequest:
+    type: DeliveryRide
+    properties:
+      webHook?:
+        type: object
+        description: |
+          If present, Liftago will send POST request to this URI, with given
+          headers and body containing StatusChangedEvent on every relevant
+          ride change.
+        properties:
+          url:
+            type: URI
+            description: URI to be called
+          headers:
+            type: Header[]
+            maxItems: 10
+      smsMessages:
+        type: object
+        description: Localized SMS templates for notifying the recipient about the status of delivery.
+        properties:
+          onPackageAccepted: string
+          onPackageArriving: string
+
+  DeliveryRideInfo:
+    type: DeliveryRide
+    properties:
+      rideStatus:
+        enum:
+          - PROCESSING
+          - ACCEPTED
+          - WAITING
+          - ON_BOARD
+          - COMPLETED
+          - CANCELLED
+          - REJECTED
+        description: |
+          - PROCESSING - ride is being processed, driver not found yet. Transitions to ACCEPTED, REJECTED or CANCELLED BY SENDER
+          - ACCEPTED - driver found and selected. Transitions to WAITING or CANCELLED (either by DRIVER OR SENDER)
+          - WAITING - driver is waiting on pickup location. Transitions to ON_BOARD or CANCELLED (either by DRIVER or SENDER)
+          - ON_BOARD - passenger on board. Transitions to COMPLETED
+          - COMPLETED - ride finished
+          - CANCELLED - ride cancelled
+          - REJECTED - could not find taxi in time
+      deliveryStatus:
+          type: object
+          properties:
+            nextStop?: Stop
+      canceledBy?:
+        enum:
+          - DRIVER
+          - SENDER
+      driver?:
+        type: Driver
+        description: Will be present once the ride is ACCEPTED
+      car?:
+        type: Car
+        description: Will be present once the ride is ACCEPTED
+      taxiPosition?:
+        type: Coordinates
+        description: |
+          Last known taxi position.
+          Will be available when the DRV starts comming for the package (can be null even if the ride is ACCEPTED).
+          Position can be also tracked via Ridesharing location url in the links.
+      reasonOfFailedDelivery?:
+        enum:
+          - RECIPIENT_NOT_THERE
+          - RECIPIENT_DIDNT_KNOW_PASSWORD
+          - TODO clarify possible reasons
+        description: reasons that can cause that a driver is not able to deliver the package to its recipient.
+      price:
+        type: Money
+        description: Total fixed price - available immediatelly - will change if the driver has to travel back to the sender or the fallback depot.
+      pickupArrivalEstimateAt?:
+        type: datetime
+        description: |
+          Estimate of the taxi arrival to the pickup point.
+          Not updated in case of delay.
+          Updated in case of a driver cancellation.
+          (available when the ride is ACCEPTED)
+      destinationArrivalEstimateAt?:
+        type: datetime
+        description: |
+          Estimate of the taxi arrival to the destination point.
+          Not updated in case of delay.
+          Updated in case of a driver cancellation. (NULL while we're looking for a new driver and new ETA once we find him)
+          Updated if the driver has to travel back to the sender or the fallback depot.
+          (available when the ride is ACCEPTED)
+      completedAt?:
+        type: datetime
+        description: When was the ride finished/cancelled
+      links:
+        type: object
+        properties:
+          self: URI
+          position: URI
+          cancel: URI
+
+  URI: string
+
+  Header:
+    type: object
+    properties:
+      name: string
+      value: string
+
+  Money:
+    type: object
+    properties:
+      amount: number
+      ccy: Currency
+
+  Currency:
+    type: string
+    description: ISO-4217 (EUR, CZK)
+
+  Coordinates:
+    type: object
+    properties:
+      lat?:
+        type: number
+        format: double
+      lon?:
+        type: number
+        format: double
+
+  GeoPoint:
+    type: Coordinates
+    properties:
+      placeName:
+        type: string
+        description:  comma separated address parts, ie. Truhlářská 15, 110 00 Praha
+
+  Address:
+    type: object
+    properties:
+      street: string
+      houseNumber: number
+      city: string
+      zipCode: string
+      country: string
+      description?: string
+
+  Location:
+    type: object
+    properties:
+      coordinates?: Coordinates
+      address?: Address
+
+  Person:
+    type: object
+    properties:
+      name: string
+      email?: string
+      company?: string
+      phoneNumber:
+        type: string
+        description:  Phone number with international prefix
+
+  Driver:
+    type: object
+    properties:
+      name: string
+      phoneNumber?:
+        type: string
+        description: Phone number to driver (goes through exchange)
+      image?: URI
+
+  Car:
+    type: object
+    properties:
+      color:
+        enum: [BLACK, BLUE, BROWN, GREEN, ORANGE, PURPLE, RED, SILVER, WHITE, YELLOW]
+      brand: string
+      model: string
+      licencePlate: string
+
+  WebHookEvent:
+    type: object
+    properties:
+      eventId:
+        type: string
+        description: Unique event identifier
+      eventType:
+        enum:
+          - status_changed
+        description:
+          status_changed - Ride and/or delivery status changed
+          Clients have to ignore unknown eventTypes
+      timestamp:
+        type: datetime
+        description: When the event occured.
+
+  StatusChangedEvent:
+    type: WebHookEvent
+    properties:
+      rideId: string
+      rideStatus: string
+      deliveryStatus: object
+      links:
+        type: object
+        properties:
+          ride:
+            type: URI
+            description: URI of the ride
+
+  CancelRequest:
+    type: object
+    properties:
+      reason?:
+        enum:
+          - TODO clarify possible reasons
+      comment?:
+        type: string
+        description: Text comment about cancallation reason
+
+  Error:
+    type: object
+    properties:
+      code: string
+      message: string
+
+  MalformedInputError:
+    type: Error
+    example: {"code": "malformed_json_request", "message": "Malformed json request"}
+
+  RideNotFoundError:
+    type: Error
+    example: {"code":"ride_not_found", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' does not exist"}
+
+  PartnerNotFoundError:
+    type: Error
+    example: {"code":"partner_not_found", "message":"Partner 'UNKNOWN' does not exist"}
+
+  DuplicatedRideIdError:
+    type: Error
+    example: {"code":"current_ride_exists", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' already exists"}
+
+  IncompatibleStateError:
+    type: Error
+    example: {"code":"incompatible_state", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' is not in the state compatible with the requested action"}
+
+  UnsupportedLocationError:
+    type: Error
+    example: {"code":"unsupported_location", "message":"Requested route is located in an unsupported area."}
+
+  UnrecognizedLocationError:
+    type: Error
+    example: {"code":"unrecognized_location", "message":"Requested route contains an unrecognizable address."}
