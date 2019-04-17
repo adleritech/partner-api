@@ -2,7 +2,7 @@
 title: Liftago Public API
 version: v1
 
-baseUri: http://api.liftago.com/v1.0/partners/{partnerId}
+baseUri: http://api.liftago.com/v1/partners/{partnerId}
 annotationTypes:
   javaName:
     allowedTargets: [TypeDeclaration, Method]
@@ -174,8 +174,6 @@ types:
           Position can be also tracked via Ridesharing location url in the links.
       reasonOfFailedDelivery?:
         enum:
-          - RECIPIENT_NOT_THERE
-          - RECIPIENT_DIDNT_KNOW_PASSWORD
           - TODO clarify possible reasons
         description: reasons that can cause that a driver is not able to deliver the package to its recipient.
       price:
@@ -245,7 +243,7 @@ types:
     type: object
     properties:
       street: string
-      houseNumber: number
+      houseNumber: string
       city: string
       zipCode: string
       country: string
@@ -357,3 +355,7 @@ types:
   UnrecognizedLocationError:
     type: Error
     example: {"code":"unrecognized_location", "message":"Requested route contains an unrecognizable address."}
+
+  NotEnoughStopsError:
+    type: Error
+    example: {"code":"not_enough_stops", "message":"Required at least 2 stops, got 1."}
