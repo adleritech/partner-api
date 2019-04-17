@@ -1,0 +1,95 @@
+#%RAML 1.0
+title: Liftago Public API
+version: v1
+
+baseUri: https://partner-sandbox.aitinternal.org/v1/partners/{partnerId}
+annotationTypes:
+  javaName:
+    allowedTargets: [TypeDeclaration, Method]
+
+description: |
+  Sandbox delivery API for verifying external integration.
+
+/sandbox/deliveryRides/{rideId}/updateRideStatus:
+  uriParameters:
+    rideId:
+      type: string
+  post:
+    body:
+      application/json:
+        type: RideStatusChangeRequest
+    responses:
+      204:
+      400:
+        body:
+          application/json:
+            type: MalformedInputError
+      404:
+        body:
+          application/json:
+            type: RideNotFoundError
+      409:
+        body:
+          application/json:
+            type: IncompatibleStateError
+
+/sandbox/deliveryRides/{rideId}/updateDeliveryStatus:
+  uriParameters:
+    rideId:
+      type: string
+  post:
+    description: Updates the delivery to its next stop provided the current RideStatus is ON_BOARD and more stops exists.
+    responses:
+      204:
+      400:
+        body:
+          application/json:
+            type: MalformedInputError
+      404:
+        body:
+          application/json:
+            type: RideNotFoundError
+      409:
+        body:
+          application/json:
+            type: IncompatibleStateError
+
+types:
+  RideStatusChangeRequest:
+    type: object
+    properties:
+      desiredStatus:
+        enum:
+          - PROCESSING
+          - ACCEPTED
+          - WAITING
+          - ON_BOARD
+          - COMPLETED
+          - CANCELLED
+          - REJECTED
+        description: |
+          - PROCESSING - ride is being processed, driver not found yet. Transitions to ACCEPTED, REJECTED or CANCELLED BY PASSENGER
+          - ACCEPTED - driver found and selected. Transitions to WAITING or CANCELLED (either by DRIVER or PASSENGER)
+          - WAITING - driver is waiting on pickup location. Transitions to ON_BOARD or CANCELLED (either by DRIVER or PASSENGER)
+          - ON_BOARD - passenger on board. Transitions to COMPLETED
+          - COMPLETED - ride finished
+          - CANCELLED - ride cancelled
+          - REJECTED - could not find taxi in time
+
+  Error:
+    type: object
+    properties:
+      code: string
+      message: string
+
+  MalformedInputError:
+    type: Error
+    example: {"code": "malformed_json_request", "message": "Malformed json request"}
+
+  RideNotFoundError:
+    type: Error
+    example: {"code":"ride_not_found", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' does not exist"}
+
+  IncompatibleStateError:
+    type: Error
+    example: {"code":"incompatible_state", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' is not in the state compatible with the requested action"}
