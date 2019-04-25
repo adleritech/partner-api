@@ -76,6 +76,23 @@ description: |
               application/json:
                type: IncompatibleStateError
 
+  /availability:
+    post:
+      description: Returns expected availability of Liftago drivers at a specified time and place.
+      body:
+        application/json:
+          type: DriverAvailabilityRequest
+      responses:
+        200:
+          body:
+            application/json:
+              type: DriverAvailability
+        400:
+          body:
+            application/json:
+              type: MalformedInputError
+
+
 types:
   DeliveryRide:
     type: object
@@ -83,12 +100,6 @@ types:
       stops:
         type: Stop[]
         description: must start an element with the kind "pickup", followed by exactly one element with the kind "destination" and followed by 0+ "fallback_destinations".
-      notesForDriver:
-        type: object
-        description: Localized messages for driver.
-        properties:
-          onPackageTakeOver: string
-          onPackageHandOver: string
       id:
         type: string
         description: |
@@ -105,6 +116,9 @@ types:
       contact:
         type: Person
         description: Contact person assuming the role of a sender (for "pickup") or a recipient (for "destination" or "fallback destination").
+      noteForDriver:
+        type: string
+        description: Localized message for the driver.
       kind:
         type: string
         description: PICKUP | DESTINATION | FALLBACK_DESTINATION
@@ -155,7 +169,9 @@ types:
       deliveryStatus:
           type: object
           properties:
-            nextStop?: Stop
+            nextStop?:
+              type: string
+              description: StopId
       canceledBy?:
         enum:
           - DRIVER
@@ -321,6 +337,20 @@ types:
       comment?:
         type: string
         description: Text comment about cancallation reason
+
+  DriverAvailabilityRequest:
+    type: object
+    properties:
+      pickup: Location
+      destination?: Location
+      expectedTimeOfTakeOver: datetime
+
+  DriverAvailability:
+    type: DriverAvailabilityRequest
+    properties:
+      guaranteed:
+        type: boolean
+        description: True if Liftago confirms that it will provide a driver for a delivery requested at the specified time and place.
 
   Error:
     type: object
