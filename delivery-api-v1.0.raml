@@ -97,9 +97,6 @@ types:
   DeliveryRide:
     type: object
     properties:
-      stops:
-        type: Stop[]
-        description: must start an element with the kind "pickup", followed by exactly one element with the kind "destination" and followed by 0+ "fallback_destinations".
       id:
         type: string
         description: |
@@ -126,6 +123,9 @@ types:
   CreateDeliveryRideRequest:
     type: DeliveryRide
     properties:
+      stops:
+        type: Stop[]
+        description: must start an element with the kind "pickup", followed by exactly one element with the kind "destination" and followed by 0+ "fallback_destinations".
       webHook?:
         type: object
         description: |
@@ -172,7 +172,7 @@ types:
             nextStop?:
               type: string
               description: StopId
-      canceledBy?:
+      cancelledBy?:
         enum:
           - DRIVER
           - SENDER
