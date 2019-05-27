@@ -100,7 +100,7 @@ types:
       id:
         type: string
         description: |
-          Unique ID send by partner which will be used in reports
+          Unique ID provided by the partner which will be used in reports
           and to detect duplicate POSTs
         pattern: "[a-zA-Z0-9-_]+"
         maxLength: 40
@@ -108,7 +108,9 @@ types:
   Stop:
     type: object
     properties:
-      stopId: string
+      stopId:
+        type: string
+        description: Provided by the partner. Unique within the ride.
       location: Location
       contact:
         type: Person
