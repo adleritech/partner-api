@@ -139,12 +139,6 @@ types:
           headers:
             type: Header[]
             maxItems: 10
-      smsMessages:
-        type: object
-        description: Localized SMS templates for notifying the recipient about the status of delivery.
-        properties:
-          onPackageAccepted: string
-          onPackageArriving: string
 
   DeliveryRideInfo:
     type: DeliveryRide
@@ -188,10 +182,6 @@ types:
           Last known taxi position.
           Will be available when the DRV starts comming for the package (can be null even if the ride is ACCEPTED).
           Position can be also tracked via Ridesharing location url in the links.
-      reasonOfFailedDelivery?:
-        enum:
-          - TODO clarify possible reasons
-        description: reasons that can cause that a driver is not able to deliver the package to its recipient.
       price:
         type: Money
         description: Total fixed price - available immediatelly - will change if the driver has to travel back to the sender or the fallback depot.
@@ -320,7 +310,7 @@ types:
     properties:
       rideId: string
       rideStatus: string
-      deliveryStatus: object
+      nextStopId: string
       links:
         type: object
         properties:
@@ -331,9 +321,7 @@ types:
   CancelRequest:
     type: object
     properties:
-      reason?:
-        enum:
-          - TODO clarify possible reasons
+      reason?: string
       comment?:
         type: string
         description: Text comment about cancallation reason
