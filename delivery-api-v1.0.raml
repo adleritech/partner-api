@@ -127,7 +127,7 @@ types:
     properties:
       stops:
         type: Stop[]
-        description: must start an element with the kind "pickup", followed by exactly one element with the kind "destination" and followed by 0+ "fallback_destinations".
+        description: must start an element with the kind "pickup", followed by 1+ elements with the kind "destination" and followed by 0+ "fallback_destinations".
       webHook?:
         type: object
         description: |
