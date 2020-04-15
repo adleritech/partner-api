@@ -128,9 +128,6 @@ types:
       stops:
         type: Stop[]
         description: must start an element with the kind "pickup", followed by 1+ elements with the kind "destination" and followed by 0+ "fallback_destinations".
-      freezeDestinationsOrder?:
-        type: boolean
-        description: Delivery order of stops is fixed. (do not optimize it)
       webHook?:
         type: object
         description: |
@@ -285,7 +282,7 @@ types:
       - RIDE_COMPLETED
       - RIDE_CANCELLED
       - RIDE_REJECTED
-    description: Action correspond to changes in possible ride or stop states
+    description: Actions correspond to changes in possible ride or stop states
 
   URI: string
 
