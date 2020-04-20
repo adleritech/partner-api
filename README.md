@@ -1,2 +1,5 @@
 # Liftago Partner API
-First draft of Liftago Partner API. This is so far just a first step for a discussion, details like error codes will be specified later.
+
+Current RAML specifications of the partner API.
+
+HTML version available [here](https://s3-eu-west-1.amazonaws.com/partner-api/delivery-api-v1.0.html).

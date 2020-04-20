@@ -141,27 +141,48 @@ types:
           headers:
             type: Header[]
             maxItems: 10
+      webHookV2?:
+        type: object
+        description: |
+            If present, Liftago will send POST request only to this `url`, with given
+            `headers` and body containing `WebHookPayload` on every relevant ride or stop change.
+            `WebHookPayload` is of type
+
+            ```
+              WebHookPayload:
+                type: object
+                properties:
+                  action: WebHookAction
+                  eventId: string
+                  rideId: string
+                  stopId?: string
+                  links: RideLink
+            ```
+            where `WebHookAction` is one of
+            `STOP_DELIVERED`, `STOP_UNDELIVERED`, `RIDE_PROCESSING`, `RIDE_ACCEPTED`, `RIDE_WAITING`, `RIDE_ON_BOARD`, `RIDE_COMPLETED`, `RIDE_CANCELLED` or `RIDE_REJECTED`.
+
+            and `RideLink` is of type
+
+            ```
+              RideLink:
+                type: object
+                properties:
+                  ride:
+                    type: string
+                    description: URI of the ride
+            ```
+        properties:
+          url:
+            type: URI
+            description: URI to be called
+          headers:
+            type: Header[]
+            maxItems: 10
 
   DeliveryRideInfo:
     type: DeliveryRide
     properties:
-      rideStatus:
-        enum:
-          - PROCESSING
-          - ACCEPTED
-          - WAITING
-          - ON_BOARD
-          - COMPLETED
-          - CANCELLED
-          - REJECTED
-        description: |
-          - PROCESSING - ride is being processed, driver not found yet. Transitions to ACCEPTED, REJECTED or CANCELLED BY SENDER
-          - ACCEPTED - driver found and selected. Transitions to WAITING or CANCELLED (either by DRIVER OR SENDER)
-          - WAITING - driver is waiting on pickup location. Transitions to ON_BOARD or CANCELLED (either by DRIVER or SENDER)
-          - ON_BOARD - passenger on board. Transitions to COMPLETED
-          - COMPLETED - ride finished
-          - CANCELLED - ride cancelled
-          - REJECTED - could not find taxi in time
+      rideStatus: RideStatus
       deliveryStatus:
           type: object
           properties:
@@ -205,14 +226,72 @@ types:
       completedAt?:
         type: datetime
         description: When was the ride finished/cancelled
+      stops:
+        type: StopInfo[]
       links:
         type: object
         properties:
           self: URI
-          position: URI
+          position?: URI
           cancel: URI
 
+  StopInfo:
+    type: object
+    properties:
+      id: string
+      lastDeliveryAttempt?: datetime
+      state: StopState
+
+  RideStatus:
+    enum:
+      - PROCESSING
+      - ACCEPTED
+      - WAITING
+      - ON_BOARD
+      - COMPLETED
+      - CANCELLED
+      - REJECTED
+    description: |
+      - PROCESSING - ride is being processed, driver not found yet. Transitions to ACCEPTED, REJECTED or CANCELLED BY SENDER
+      - ACCEPTED - driver found and selected. Transitions to WAITING or CANCELLED (either by DRIVER OR SENDER)
+      - WAITING - driver is waiting on pickup location. Transitions to ON_BOARD or CANCELLED (either by DRIVER or SENDER)
+      - ON_BOARD - passenger on board. Transitions to COMPLETED
+      - COMPLETED - ride finished
+      - CANCELLED - ride cancelled
+      - REJECTED - could not find taxi in time
+
+  StopState:
+    enum:
+      - IN_QUEUE
+      - DELIVERED
+      - UNDELIVERED
+    description: |
+      - IN_QUEUE - no delivery attempt yet
+      - DELIVERED - delivered attempt succeeded
+      - UNDELIVERED - last delivery attempt failed
+
+  WebHookAction:
+    enum:
+      - STOP_IN_QUEUE
+      - STOP_DELIVERED
+      - STOP_UNDELIVERED
+      - RIDE_PROCESSING
+      - RIDE_ACCEPTED
+      - RIDE_WAITING
+      - RIDE_ON_BOARD
+      - RIDE_COMPLETED
+      - RIDE_CANCELLED
+      - RIDE_REJECTED
+    description: Actions correspond to changes in possible ride or stop states
+
   URI: string
+
+  RideLink:
+    type: object
+    properties:
+      ride:
+        type: URI
+        description: URI of the ride
 
   Header:
     type: object
@@ -239,13 +318,6 @@ types:
       lon?:
         type: number
         format: double
-
-  GeoPoint:
-    type: Coordinates
-    properties:
-      placeName:
-        type: string
-        description:  comma separated address parts, ie. Truhlářská 15, 110 00 Praha
 
   Address:
     type: object
@@ -312,13 +384,22 @@ types:
     properties:
       rideId: string
       rideStatus: string
-      nextStopId: string
+      nextStopId?: string
       links:
         type: object
         properties:
           ride:
             type: URI
             description: URI of the ride
+
+  WebHookPayload:
+    type: object
+    properties:
+      action: WebHookAction
+      eventId: string
+      rideId: string
+      stopId?: string
+      links: RideLink
 
   CancelRequest:
     type: object
