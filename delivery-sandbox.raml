@@ -54,6 +54,31 @@ description: |
           application/json:
             type: IncompatibleStateError
 
+
+/sandbox/deliveryRides/{rideId}/stop/{stopId}/updateStop:
+  uriParameters:
+    rideId: string
+    stopId: string
+  post:
+    description: Updates the stop to provided state provided such transition is feasible
+    body:
+      application/json:
+        type: StopUpdateRequest
+    responses:
+      204:
+      400:
+        body:
+          application/json:
+            type: MalformedInputError
+      404:
+        body:
+          application/json:
+            type: StopNotFoundError
+      409:
+        body:
+          application/json:
+            type: IncompatibleStateError
+
 types:
   RideStatusChangeRequest:
     type: object
@@ -76,6 +101,16 @@ types:
           - CANCELLED - ride cancelled
           - REJECTED - could not find taxi in time
 
+  StopUpdateRequest:
+    type: object
+    properties:
+      desiredStatus:
+        enum:
+          - DELIVERED
+          - UNDELIVERED
+      desiredTime?:
+        type: datetime
+
   Error:
     type: object
     properties:
@@ -89,6 +124,10 @@ types:
   RideNotFoundError:
     type: Error
     example: {"code":"ride_not_found", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' does not exist"}
+
+  StopNotFoundError:
+      type: Error
+      example: {"code":"stop_not_found", "message":"Stop '33d6953e-f533-4d1b-bb69-3092e0b51f23' does not exist for ride 'f9852152-1754-438e-a5ab-9a614339875a'"}
 
   IncompatibleStateError:
     type: Error
