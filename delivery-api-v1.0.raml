@@ -76,6 +76,35 @@ description: |
               application/json:
                type: IncompatibleStateError
 
+    /stops:
+      /{stopId}:
+        uriParameters:
+          stopId: string
+        /change:
+          post:
+            description: Changes the stop
+            body:
+              application/json:
+                type: ChangeStopRequest
+            responses:
+              204:
+              400:
+                body:
+                  application/json:
+                    type: MalformedInputError
+              403:
+                body:
+                  application/json:
+                    type: ChangeNotAllowedError
+              404:
+                body:
+                  application/json:
+                    type: StopNotFoundError
+              409:
+                body:
+                  application/json:
+                   type: IncompatibleStateError
+
   /availability:
     post:
       description: Returns expected availability of Liftago drivers at a specified time and place.
@@ -118,9 +147,7 @@ types:
       noteForDriver:
         type: string
         description: Localized message for the driver.
-      kind:
-        type: string
-        description: PICKUP | DESTINATION | FALLBACK_DESTINATION
+      kind: StopKind
 
   CreateDeliveryRideRequest:
     type: DeliveryRide
@@ -241,6 +268,7 @@ types:
       id: string
       lastDeliveryAttempt?: datetime
       state: StopState
+      kind: StopKind
 
   RideStatus:
     enum:
@@ -270,6 +298,12 @@ types:
       - DELIVERED - delivered attempt succeeded
       - UNDELIVERED - last delivery attempt failed
 
+  StopKind:
+    enum:
+      - PICKUP
+      - DESTINATION
+      - FALLBACK_DESTINATION
+    description: Possible kinds of stops
   WebHookAction:
     enum:
       - STOP_IN_QUEUE
@@ -409,6 +443,16 @@ types:
         type: string
         description: Text comment about cancallation reason
 
+  ChangeStopRequest:
+    type: object
+    properties:
+      change: StopChange
+
+  StopChange:
+    enum:
+      - POSTOPNE_TO_END
+      - CANCEL
+
   DriverAvailabilityRequest:
     type: object
     properties:
@@ -436,6 +480,14 @@ types:
   RideNotFoundError:
     type: Error
     example: {"code":"ride_not_found", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' does not exist"}
+
+  StopNotFoundError:
+    type: Error
+    example: {"code":"stop_not_found", "message":"Stop '33d6953e-f533-4d1b-bb69-3092e0b51f23' does not exist for ride 'f9852152-1754-438e-a5ab-9a614339875a'"}
+
+  ChangeNotAllowedError:
+    type: Error
+    example: {"code": "change_not_allowed", "message": "Changes not allowed"}
 
   PartnerNotFoundError:
     type: Error
