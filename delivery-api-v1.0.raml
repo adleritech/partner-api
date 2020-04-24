@@ -505,6 +505,10 @@ types:
     type: Error
     example: {"code":"unsupported_location", "message":"Requested route is located in an unsupported area."}
 
+  UnsupportedUpdateError:
+    type: Error
+    example: {"code":"unsupported_update", "message":"Stop is of kind 'PICKUP', must be 'DESTINATION'"}
+
   UnrecognizedLocationError:
     type: Error
     example: {"code":"unrecognized_location", "message":"Requested route contains an unrecognizable address."}
