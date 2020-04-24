@@ -80,12 +80,12 @@ description: |
       /{stopId}:
         uriParameters:
           stopId: string
-        /change:
+        /update:
           post:
-            description: Changes the stop
+            description: Updates the stop
             body:
               application/json:
-                type: ChangeStopRequest
+                type: UpdateStopRequest
             responses:
               204:
               400:
@@ -95,7 +95,7 @@ description: |
               403:
                 body:
                   application/json:
-                    type: ChangeNotAllowedError
+                    type: UpdateNotAllowedError
               404:
                 body:
                   application/json:
@@ -443,12 +443,12 @@ types:
         type: string
         description: Text comment about cancallation reason
 
-  ChangeStopRequest:
+  UpdateStopRequest:
     type: object
     properties:
-      change: StopChange
+      update: StopUpdate
 
-  StopChange:
+  StopUpdate:
     enum:
       - POSTOPNE_TO_END
       - CANCEL
@@ -485,9 +485,9 @@ types:
     type: Error
     example: {"code":"stop_not_found", "message":"Stop '33d6953e-f533-4d1b-bb69-3092e0b51f23' does not exist for ride 'f9852152-1754-438e-a5ab-9a614339875a'"}
 
-  ChangeNotAllowedError:
+  UpdateNotAllowedError:
     type: Error
-    example: {"code": "change_not_allowed", "message": "Changes not allowed"}
+    example: {"code": "update_not_allowed", "message": "Updates not allowed"}
 
   PartnerNotFoundError:
     type: Error
