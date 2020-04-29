@@ -147,7 +147,9 @@ types:
       noteForDriver:
         type: string
         description: Localized message for the driver.
-      kind: StopKind
+      kind:
+        type: string
+        description: PICKUP | DESTINATION | FALLBACK_DESTINATION
 
   CreateDeliveryRideRequest:
     type: DeliveryRide
@@ -268,7 +270,9 @@ types:
       id: string
       lastDeliveryAttempt?: datetime
       state: StopState
-      kind: StopKind
+      kind:
+        type: string
+        description: PICKUP | DESTINATION | FALLBACK_DESTINATION
 
   RideStatus:
     enum:
@@ -298,12 +302,6 @@ types:
       - DELIVERED - delivered attempt succeeded
       - UNDELIVERED - last delivery attempt failed
 
-  StopKind:
-    enum:
-      - PICKUP
-      - DESTINATION
-      - FALLBACK_DESTINATION
-    description: Possible kinds of stops
   WebHookAction:
     enum:
       - STOP_IN_QUEUE
@@ -446,12 +444,9 @@ types:
   UpdateStopRequest:
     type: object
     properties:
-      update: StopUpdate
-
-  StopUpdate:
-    enum:
-      - POSTPONE_TO_END
-      - CANCEL
+      update:
+        type: string
+        description: PICKUP | DESTINATION | FALLBACK_DESTINATION
 
   DriverAvailabilityRequest:
     type: object
