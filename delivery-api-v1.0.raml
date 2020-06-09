@@ -160,6 +160,11 @@ types:
   CreateDeliveryRideRequest:
     type: DeliveryRide
     properties:
+      productSettingId?:
+        type: string
+        description: |
+            identifies various delivery ride settings, such as prize per leg, proof of identity requirements, etc.
+            ProductSettings are managed by the account operator.
       stops:
         type: Stop[]
         description: must start an element with the kind "pickup", followed by 1+ elements with the kind "destination" and followed by 0+ "fallback_destinations".
