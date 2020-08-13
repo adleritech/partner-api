@@ -485,40 +485,40 @@ types:
 
   RideNotFoundError:
     type: Error
-    example: {"code":"ride_not_found", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' does not exist"}
+    example: {"code":"RIDE_NOT_FOUND", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' does not exist"}
 
   StopNotFoundError:
     type: Error
-    example: {"code":"stop_not_found", "message":"Stop '33d6953e-f533-4d1b-bb69-3092e0b51f23' does not exist for ride 'f9852152-1754-438e-a5ab-9a614339875a'"}
+    example: {"code":"STOP_NOT_FOUND", "message":"Stop '33d6953e-f533-4d1b-bb69-3092e0b51f23' does not exist for ride 'f9852152-1754-438e-a5ab-9a614339875a'"}
 
   UpdateNotAllowedError:
     type: Error
-    example: {"code": "update_not_allowed", "message": "Updates not allowed"}
+    example: {"code": "UPDATE_NOT_ALLOWED", "message": "Updates not allowed"}
 
   PartnerNotFoundError:
     type: Error
-    example: {"code":"partner_not_found", "message":"Partner 'UNKNOWN' does not exist"}
+    example: {"code":"PARTNER_NOT_FOUND", "message":"Partner 'UNKNOWN' does not exist"}
 
   DuplicatedRideIdError:
     type: Error
-    example: {"code":"current_ride_exists", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' already exists"}
+    example: {"code":"CURRENT_RIDE_EXISTS", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' already exists"}
 
   IncompatibleStateError:
     type: Error
-    example: {"code":"incompatible_state", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' is not in the state compatible with the requested action"}
+    example: {"code":"INCOMPATIBLE_STATE", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' is not in the state compatible with the requested action"}
 
   UnsupportedLocationError:
     type: Error
-    example: {"code":"unsupported_location", "message":"Requested route is located in an unsupported area."}
+    example: {"code":"UNSUPPORTED_LOCATION", "message":"Requested route is located in an unsupported area."}
 
   UnsupportedUpdateError:
     type: Error
-    example: {"code":"unsupported_update", "message":"Stop is of kind 'PICKUP', must be 'DESTINATION'"}
+    example: {"code":"UNSUPPORTED_UPDATE", "message":"Stop is of kind 'PICKUP', must be 'DESTINATION'"}
 
   UnrecognizedLocationError:
     type: Error
-    example: {"code":"unrecognized_location", "message":"Requested route contains an unrecognizable address."}
+    example: {"code":"UNRECOGNIZED_LOCATION", "message":"Requested route contains an unrecognizable address."}
 
   NotEnoughStopsError:
     type: Error
-    example: {"code":"not_enough_stops", "message":"Required at least 2 stops, got 1."}
+    example: {"code":"NOT_ENOUGH_STOPS", "message":"Required at least 2 stops, got 1."}
