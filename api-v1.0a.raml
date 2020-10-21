@@ -266,6 +266,59 @@ types:
           self: URI
           rating: URI
           cancel: URI
+    example:
+      {
+        "id": "my-custom-ride-id123",
+        "passenger": {
+          "name": "John Smith",
+          "phoneNumber": "+93123456789"
+        },
+        "pickup": {
+          "lat": 50.093,
+          "lon": 14.334,
+          "placeName": "Jose Martiho, Prague"
+        },
+        "destination": {
+          "lat": 50.09804,
+          "lon": 14.5,
+          "placeName": "Somewhere else in Prague"
+        },
+        "status": "COMPLETED",
+        "links": {
+          "self": "/v1/partners/my-assigned-partner-id/rides/my-custom-ride-id123",
+          "rating": "/v1/partners/my-assigned-partner-id/rides/my-custom-ride-id123/rating",
+          "cancel": "/v1/partners/my-assigned-partner-id/rides/my-custom-ride-id123/cancel"
+        },
+        "cancelledBy": null,
+        "estimatedPrice": {
+          "amount": 400,
+          "ccy": "CZK"
+        },
+        "driver": {
+          "name": "Alice Smith",
+          "phoneNumber": "+93123456788",
+          "image": "https://s3-eu-west-1.amazonaws.com/images-test.aitinternal.org/a5f5b339-e9f8-4ec1-a30a-a9e3e9f675ec"
+        },
+        "taxiPosition": {
+          "lat": 50.0936017,
+          "lon": 14.3404683
+        },
+        "car": {
+          "color": "BLACK",
+          "brand": "Skoda",
+          "model": "Superb",
+          "licencePlate": "1P1-1223"
+        },
+        "arrivalEstimateAt": "2020-10-21T09:14:34.974Z",
+        "completedAt": "2020-10-21T09:13:48.381Z",
+        "bill": {
+          "amount": {
+            "amount": 270,
+            "ccy": "CZK"
+          }
+        }
+      }
+
 
   Rating:
     type: object
