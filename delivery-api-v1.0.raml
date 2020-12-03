@@ -150,12 +150,27 @@ types:
       kind:
         type: string
         description: PICKUP | DESTINATION | FALLBACK_DESTINATION
+      arrivalTime:
+        type: Interval
+        description: Requested time to arrive at this stop. It must be specified on the PICKUP stop only, or all DESTINATION stops, or on no stop at all.
+        required: false
       verificationCode:
         type: string
         minLength: 4
         maxLength: 10
         required: false
         description: Code (PIN, Password) to be used to proof the identity of a recepient. Always has to be null for PICKUP stops.
+
+  Interval:
+    type: object
+    description: Represents a time interval.
+    properties:
+      from:
+        type: datetime
+        description: The beginning of the interval. Must be in UTC.
+      to:
+        type: datetime
+        description: The end of the interval. Must be in UTC.
 
   CreateDeliveryRideRequest:
     type: DeliveryRide
