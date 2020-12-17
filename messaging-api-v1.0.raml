@@ -1,0 +1,43 @@
+#%RAML 1.0
+title: Liftago Public Messaging API
+version: v1
+
+description: |
+  Messaging API for external integration.
+
+/messages:
+  /notifications:
+    post:
+      headers:
+        x-api-key: string
+      body:
+        application/json:
+          type: SendNotificationsRequest
+      responses:
+        204:
+
+types:
+  UserVariable:
+    properties:
+      name: string
+      value: string
+
+  SendUserNotification:
+    properties:
+      userId: string
+      pushParameters:
+        type: UserVariable[]
+        description: Parameters to be filled into the push notification template
+      threadId?:
+        type: string
+        description: Id to link notifications together, only the last for given user will be shown
+
+  SendNotificationsRequest:
+    properties:
+      pushNotificationTemplate:
+        type: string
+        description: Push notification template
+      userNotifications: SendUserNotification[]
+      timeout?:
+        type: string
+        description: For how long should the notification be shown, ISO 8601 duration
