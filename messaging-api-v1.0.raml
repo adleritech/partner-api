@@ -15,6 +15,10 @@ description: |
           type: SendNotificationsRequest
       responses:
         204:
+        400:
+          description: Bad request, either doesn't contain necessary properties or data limit is exceeded
+        500:
+          description: An error has occured and the request should not be repeated programatically
 
 types:
   UserVariable:
@@ -36,8 +40,10 @@ types:
     properties:
       pushNotificationTemplate:
         type: string
-        description: Push notification template
-      userNotifications: SendUserNotification[]
+        description: Push notification template containing placeholders ${placeholderName} to be filled with values from userNotifications.pushParameters
+      userNotifications:
+       type: SendUserNotification[]
+       description: User notifications, up to 5000 users can be targeted at once
       timeout?:
         type: string
         description: For how long should the notification be shown, ISO 8601 duration
