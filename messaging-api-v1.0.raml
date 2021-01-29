@@ -38,6 +38,9 @@ types:
 
   SendNotificationsRequest:
     properties:
+      pushNotificationTitleTemplate:
+        type: string
+        description: Push notification title template containing placeholders ${placeholderName} to be filled with values from userNotifications.pushParameters
       pushNotificationTemplate:
         type: string
         description: Push notification template containing placeholders ${placeholderName} to be filled with values from userNotifications.pushParameters
