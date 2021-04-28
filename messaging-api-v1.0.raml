@@ -19,6 +19,19 @@ description: |
           description: Bad request, either doesn't contain necessary properties or data limit is exceeded
         500:
           description: An error has occured and the request should not be repeated programatically
+  /inbox:
+    post:
+      headers:
+        x-api-key: string
+      body:
+        application/json:
+          type: SendInboxMessagesRequest
+      responses:
+        204:
+        400:
+          description: Bad request, either doesn't contain necessary properties or data limit is exceeded
+        500:
+          description: An error has occured and the request should not be repeated programatically
 
 types:
   UserVariable:
@@ -50,3 +63,28 @@ types:
       timeout?:
         type: string
         description: For how long should the notification be shown, ISO 8601 duration
+
+  SendUserInboxMessage:
+    properties:
+      userId: string
+      inboxParameters:
+        type: UserVariable[]
+        description: Parameters to be filled into the inbox template
+
+  SendInboxMessagesRequest:
+    properties:
+      inboxTemplate:
+        type: string
+        description: Inbox template HTML containing placeholders ${placeholderName} to be filled with values from userNotifications.inboxParameters
+      userInboxMessages:
+        type: SendUserInboxMessage[]
+        description: User inbox messages, up to 5000 users can be targeted at once
+      campaignId:
+        type: string
+        description: Campaign id in the source system
+      validity?:
+        type: string
+        description: For how long should the notification be valid, ISO 8601 duration. For example P2M15DT for 2 months and 15 days.
+      showAlways:
+        type: boolean
+        description: Should the inbox message always be shown
