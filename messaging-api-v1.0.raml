@@ -73,6 +73,9 @@ types:
 
   SendInboxMessagesRequest:
     properties:
+      inboxTitleTemplate:
+        type: string
+        description: Inbox title template containing placeholders ${placeholderName} to be filled with values from userNotifications.inboxParameters
       inboxTemplate:
         type: string
         description: Inbox template HTML containing placeholders ${placeholderName} to be filled with values from userNotifications.inboxParameters
