@@ -186,6 +186,10 @@ types:
   CreateRideRequest:
     type: Ride
     properties:
+      pickupDelayMinutes?:
+        type: integer
+        description: |
+          Requested pickup time is postponed. Only valid number is 15 (15 minutes).
       webHook?:
         type: object
         description: |
