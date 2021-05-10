@@ -8,6 +8,7 @@ description: |
 /messages:
   /notifications:
     post:
+      description: Send push messages, deprecated in favor of /messages/in-app that supports both
       headers:
         x-api-key: string
       body:
@@ -19,13 +20,14 @@ description: |
           description: Bad request, either doesn't contain necessary properties or data limit is exceeded
         500:
           description: An error has occured and the request should not be repeated programatically
-  /inbox:
+  /in-app:
     post:
+      description: Send in-app messages - inbox, push or push+inbox
       headers:
         x-api-key: string
       body:
         application/json:
-          type: SendInboxMessagesRequest
+          type: SendInAppMessagesRequest
       responses:
         204:
         400:
@@ -64,30 +66,51 @@ types:
         type: string
         description: For how long should the notification be shown, ISO 8601 duration
 
-  SendUserInboxMessage:
+  SendUserInAppMessage:
     properties:
       userId: string
-      inboxParameters:
+      parameters:
         type: UserVariable[]
-        description: Parameters to be filled into the inbox template
+        description: Parameters to be filled into the inbox or push template
 
-  SendInboxMessagesRequest:
+  Template:
     properties:
-      inboxTitleTemplate:
+      title:
+        description: Title template containing placeholders ${placeholderName} to be filled with values from userMessages.parameters
         type: string
-        description: Inbox title template containing placeholders ${placeholderName} to be filled with values from userNotifications.inboxParameters
-      inboxTemplate:
+      body:
+        description: Body template containing placeholders ${placeholderName} to be filled with values from userMessages.parameters
         type: string
-        description: Inbox template HTML containing placeholders ${placeholderName} to be filled with values from userNotifications.inboxParameters
-      userInboxMessages:
-        type: SendUserInboxMessage[]
-        description: User inbox messages, up to 5000 users can be targeted at once
-      campaignId:
-        type: string
-        description: Campaign id in the source system
+
+  Inbox:
+    properties:
+      template: Template
       validity?:
         type: string
-        description: For how long should the notification be valid, ISO 8601 duration. For example P2M15DT for 2 months and 15 days.
+        description: For how long should the inbox message be valid, ISO 8601 duration. For example P2M15DT for 2 months and 15 days.
       showAlways:
         type: boolean
         description: Should the inbox message always be shown
+
+  Push:
+    properties:
+      template: Template
+      timeout?:
+        type: string
+        description: For how long should the notification be shown, ISO 8601 duration
+
+  SendInAppMessagesRequest:
+    description: In-app messages request, can contain inbox, push or inbox+push creation data
+    properties:
+      inbox?:
+        description: Inbox data description
+        type: Inbox
+      push?:
+        description: Push data description
+        type: Push
+      userMessages:
+        type: SendUserInAppMessage[]
+        description: User in-app messages, up to 5000 users can be targeted at once
+      campaignId:
+        type: string
+        description: Campaign id in the source system
