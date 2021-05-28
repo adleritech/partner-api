@@ -1,6 +1,6 @@
 #%RAML 1.0
 title: Liftago Public Messaging API
-version: v1
+version: v1.1
 
 description: |
   Messaging API for external integration.
@@ -113,4 +113,7 @@ types:
         description: User in-app messages, up to 5000 users can be targeted at once
       campaignId:
         type: string
-        description: Campaign id in the source system
+        description: Unique campaign id in the source system, can consist of multiple distributions
+      distributionId:
+        type: string
+        description: Distribution id in the source system, templates are immutable during one distribution, unique in specified campaign
