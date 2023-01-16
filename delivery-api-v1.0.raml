@@ -121,6 +121,18 @@ description: |
             application/json:
               type: MalformedInputError
 
+/deliveryOrders/{orderId}:
+  get:
+    description: Returns information about delivery order
+    responses:
+      200:
+        body:
+          application/json:
+            type: DeliveryOrderInfo
+      404:
+        body:
+          application/json:
+            type: OrderNotFoundError
 
 types:
   DeliveryRide:
@@ -182,7 +194,7 @@ types:
             ProductSettings are managed by the account operator.
       stops:
         type: Stop[]
-        description: must start an element with the kind "pickup", followed by 1+ elements with the kind "destination" and followed by 0+ "fallback_destinations".
+        description: Supports delivery and collect ride scenarios. </br></br> Delivery ride is characterized by single pickup stop and one or more destination stops (first stop must be of kind "pickup", followed by one or more elements with the kind "destination" and optional "fallback_destinations" stop). </br></br> Collect ride is characterized by multiple pickup stops and single destination stop (must start with elements with the kind "pickup" followed by a single element with the kind "destination").
       webHook?:
         type: object
         description: |
@@ -299,6 +311,33 @@ types:
       kind:
         type: string
         description: PICKUP | DESTINATION | FALLBACK_DESTINATION
+
+  DeliveryOrderStatus:
+    enum:
+      - NEW
+      - IN_PLANNING
+      - REJECTED
+      - CANCELED
+      - SCHEDULED
+      - IN_PROGRESS
+      - COMPLETED
+
+  ShipmentStatus:
+    enum:
+      - NEW
+      - SCHEDULED
+      - IN_RIDE
+      - ON_BOARD
+      - DELIVERING
+      - DELIVERED
+      - UNDELIVERED
+      - RETURNING
+      - STORING
+      - STORED
+      - RETURNED
+      - DISCARDED
+      - CANCELED
+      - WONT_DELIVER
 
   RideStatus:
     enum:
@@ -488,6 +527,26 @@ types:
         type: boolean
         description: True if Liftago confirms that it will provide a driver for a delivery requested at the specified time and place.
 
+  DeliveryOrderShipment:
+    type: object
+    properties:
+      shipmentId:
+        type: string
+      status:
+        type: DeliveryOrderStatus
+
+  DeliveryOrderInfo:
+    type: object
+    properties:
+      orderId:
+        type: string
+      status:
+        type: DeliveryOrderStatus
+      statusMessage?:
+        type: string
+      shipments:
+        type: DeliveryOrderShipment[]
+
   Error:
     type: object
     properties:
@@ -501,6 +560,10 @@ types:
   RideNotFoundError:
     type: Error
     example: {"code":"RIDE_NOT_FOUND", "message":"Ride '52b4f17d-cb60-41a5-a1c5-f901167e5bdc' does not exist"}
+
+  OrderNotFoundError:
+    type: Error
+    example: {"code":"ORDER_NOT_FOUND", "message":"Order 52b4f17d-cb60-41a5-a1c5-f901167e5bdc for business liftago does not exist"}
 
   StopNotFoundError:
     type: Error
